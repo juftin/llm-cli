@@ -1,0 +1,107 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3"
+
+vars:
+    # PROJECT VARIABLES
+    SOURCE_CODE: llm_term
+    # DEFAULT VARIABLES
+    DOCKERFILE: Dockerfile
+    DOCKER_ORG: juftin
+
+tasks:
+    install:
+        desc: Install Project + Dev Dependencies
+        cmds:
+            - task: pre-commit-install
+            - cmd: uv sync --all-extras
+    default:
+        desc: Install Project, List Tasks
+        cmds:
+            - task: install
+            - task --list-all
+    test:
+        desc: Run Tests
+        cmds:
+            - uv run --all-extras pytest {{.CLI_ARGS | default "tests"}}
+    fmt:
+        desc: Run Code Formatters
+        cmds:
+            - uv run -- ruff format {{.CLI_ARGS | default .ROOT_DIR}}
+            - task: pre-commit
+    fix:
+        desc: Fix Code with Linters and Formatters
+        cmds:
+            - task: fmt
+            - uv run ruff check --fix {{.CLI_ARGS | default .ROOT_DIR}}
+    lint:
+        desc: Run Code Linters
+        cmds:
+            - uv run ruff check {{.CLI_ARGS | default .ROOT_DIR}}
+    check:
+        desc: Run Static Type Checkers
+        cmds:
+            - |
+                uv run mypy \
+                  --install-types \
+                  --ignore-missing-imports \
+                  --non-interactive \
+                  {{.CLI_ARGS | default .SOURCE_CODE}}
+    build:
+        desc: Build the Project Artifacts
+        cmds:
+            - uv build
+            - task: docker
+    run:
+        desc: Run Command within Project (requires "--")
+        cmds:
+            - uv run {{.CLI_ARGS}}
+    docs:
+        desc: Serve Documentation with MkDocs
+        cmds:
+            - uv run --group docs mkdocs {{.CLI_ARGS | default "serve --dev-addr=localhost:8000"}}
+        status:
+            - test ! -f {{.ROOT_DIR}}/mkdocs.yaml
+    docker:
+        desc: Build Docker Image
+        cmds:
+            - |
+                docker build \
+                   --tag {{.DOCKER_ORG}}/{{.PACKAGE_NAME}}:latest \
+                   --tag {{.DOCKER_ORG}}/{{.PACKAGE_NAME}}:{{.PACKAGE_VERSION}} \
+                   {{.CLI_ARGS}} \
+                   {{.ROOT_DIR}}
+        status:
+            - test ! -f {{.ROOT_DIR}}/{{.DOCKERFILE}}
+        vars:
+            PACKAGE_NAME:
+                sh: uv tool run hatch project metadata name
+            PACKAGE_VERSION:
+                sh: uv tool run hatch project metadata version
+    version:
+        desc: View / Set Project Version
+        cmd: uv tool run hatch version {{.CLI_ARGS}}
+    pre-commit:
+        desc: Run Pre-Commit Hooks
+        cmds:
+            - git add --all --intent-to-add
+            - uv tool run pre-commit run
+        status:
+            - test ! -f {{.ROOT_DIR}}/.pre-commit-config.yaml
+        deps:
+            - pre-commit-install
+
+    ########################
+    # INTERNAL TASKS
+    ########################
+    pre-commit-install:
+        desc: Install Pre-Commit Hooks
+        internal: true
+        cmds:
+            - cmd: |
+                  if [ "{{.PRE_COMMIT | default 1}}" = "1" ]; then
+                      uv tool run pre-commit install --install-hooks
+                  fi
+              silent: true
+        status:
+            - test -f {{.ROOT_DIR}}/.git/hooks/pre-commit

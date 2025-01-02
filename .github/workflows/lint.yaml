@@ -27,14 +27,14 @@ jobs:
               continue-on-error: true
               run: |
                   echo "::add-matcher::.github/workflows/matchers/flake8.json"
-                  hatch run lint:style
+                  task lint
                   echo "::remove-matcher owner=flake8::"
             - name: Type Checking
               id: check
               continue-on-error: true
               run: |
                   echo "::add-matcher::.github/workflows/matchers/mypy.json"
-                  hatch run lint:typing
+                  task check
                   echo "::remove-matcher owner=mypy::"
             - name: Raise Errors For Linting Failures
               if: |
