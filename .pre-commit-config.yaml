@@ -1,9 +1,8 @@
-default_stages: [commit]
-fail_fast: false
+# yaml-language-server: $schema=https://json.schemastore.org/pre-commit-config.json
 
 repos:
     - repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v4.5.0
+      rev: v5.0.0
       hooks:
           - id: trailing-whitespace
             exclude: '\.svg$'
@@ -16,7 +15,7 @@ repos:
           - id: mixed-line-ending
 
     - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-      rev: v2.11.0
+      rev: v2.14.0
       hooks:
           - id: pretty-format-toml
             args: [--autofix]
@@ -36,16 +35,17 @@ repos:
 
     - repo: local
       hooks:
-          - id: format
+          - id: ruff-format
             name: format
             description: Runs Code Auto-Formatters
-            entry: hatch run lint:fmt
+            entry: uv run ruff format
             language: system
-            pass_filenames: false
-          - id: lint
+            types:
+                - python
+          - id: ruff-check
             name: lint
             description: Runs Code Linters
-            entry: hatch run lint:all
+            entry: uv run ruff check --fix
             language: system
-            pass_filenames: false
-            require_serial: false
+            types:
+                - python

@@ -19,27 +19,17 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 2
-                  ref: main
-            - name: Setup Node.js
-              uses: actions/setup-node@v3
-            - name: Set up Python
-              uses: actions/setup-python@v5
+            - name: Install uv
+              uses: astral-sh/setup-uv@v5
               with:
-                  python-version: "3.11"
-            - name: Install Hatch
-              run: |
-                  python -m pip install --upgrade pip
-                  python -m pip install -q hatch pre-commit
-                  hatch -v env create
-                  hatch --version
-            - name: Release
-              run: hatch run gen:release
-              env:
-                  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-                  GIT_AUTHOR_NAME: github-actions[bot]
-                  GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
-                  GIT_COMMITTER_NAME: github-actions[bot]
-                  GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+                  version: latest
+                  python-version: 3.11
+            - name: Install Task
+              uses: arduino/setup-task@v2
+            - name: Semantic Release
+              uses: juftin/actions/semantic-release@v1
+              with:
+                  github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
     github-pages-publish:
         runs-on: ubuntu-latest
@@ -57,19 +47,17 @@ jobs:
               with:
                   ref: ${{ github.ref }}
                   fetch-depth: 0
-            - name: Set up Python Environment
-              uses: actions/setup-python@v5
+            - name: Install uv
+              uses: astral-sh/setup-uv@v5
               with:
-                  python-version: "3.11"
-            - name: Install Hatch
-              run: |
-                  python -m pip install --upgrade pip wheel
-                  python -m pip install -q hatch pre-commit
-                  hatch --version
-            - name: Create Virtual Environment
-              run: hatch env create docs
+                  version: latest
+                  python-version: 3.11
+            - name: Install Task
+              uses: arduino/setup-task@v2
+            - name: Install Python Dependencies
+              run: task install
             - name: Build Site
-              run: hatch run docs:build
+              run: task docs -- build
             - name: Setup GitHub Pages
               uses: actions/configure-pages@v4
             - name: Upload Artifact

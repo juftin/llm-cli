@@ -2,6 +2,22 @@
 build-backend = "hatchling.build"
 requires = ["hatchling"]
 
+[dependency-groups]
+dev = [
+  "pytest>=8,<9",
+  "pytest-cov>=6,<7",
+  "ruff~=0.8.4",
+  "mypy~=1.14",
+  "pip"  # mypy --install-types
+]
+docs = [
+  "mkdocs~=1.5.2",
+  "mkdocs-material~=9.2.3",
+  "mkdocstrings~=0.22.0",
+  "markdown-exec[ansi]~=1.6.0",
+  "mkdocs-click~=0.8.1"
+]
+
 [project]
 authors = [
   {name = "Justin Flannery", email = "juftin@juftin.com"}
@@ -10,11 +26,11 @@ classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy"
 ]
@@ -34,7 +50,7 @@ keywords = ["openai", "rich", "cli", "python", "chatgpt"]
 license = "MIT"
 name = "llm-term"
 readme = "README.md"
-requires-python = ">=3.8,<4"
+requires-python = ">=3.9,<4"
 
 [project.optional-dependencies]
 all = [
@@ -53,10 +69,6 @@ Documentation = "https://juftin.github.io/llm-term"
 Issues = "https://juftin.github.io/llm-term/issues"
 Source = "https://github.com/juftin/llm-term"
 
-[tool.coverage.paths]
-llm_term = ["llm_term", "*/llm-term/llm_term"]
-tests = ["tests", "*/llm-term/tests"]
-
 [tool.coverage.report]
 exclude_lines = [
   "no cov",
@@ -67,101 +79,22 @@ exclude_lines = [
 [tool.coverage.run]
 branch = true
 omit = [
-  "llm_term/__about__.py"
+  "llm_term/__about__.py",
+  "tests/*"
 ]
-parallel = true
-source_pkgs = ["llm_term", "tests"]
-
-[[tool.hatch.envs.all.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
-
-[tool.hatch.envs.default]
-dependencies = [
-  "coverage[toml]>=6.5",
-  "pytest"
-]
-features = ["all"]
-post-install-commands = [
-  "pre-commit install"
-]
-pre-install-commands = [
-  "pip install -q -r requirements.txt --no-deps"
-]
-type = "virtual"
-
-[tool.hatch.envs.default.scripts]
-cov = [
-  "test-cov",
-  "cov-report"
-]
-cov-report = [
-  "- coverage combine",
-  "coverage report -m"
-]
-test = "pytest {args:tests}"
-test-cov = "coverage run -m pytest {args:tests}"
-
-[tool.hatch.envs.docs]
-dependencies = [
-  "mkdocs~=1.5.2",
-  "mkdocs-material~=9.2.3",
-  "mkdocstrings~=0.22.0",
-  "markdown-exec[ansi]~=1.6.0",
-  "mkdocs-click~=0.8.1"
-]
-
-[tool.hatch.envs.docs.scripts]
-build = ["mkdocs build --clean --strict"]
-deploy = ["mkdocs gh-deploy {args:}"]
-serve = ["mkdocs serve --dev-addr localhost:8080 --livereload"]
-
-[tool.hatch.envs.gen]
-dependencies = [
-  "pip-tools~=7.1.0"
-]
-detached = true
-
-[tool.hatch.envs.gen.scripts]
-release = [
-  "npm install --prefix .github/semantic_release/",
-  "npx --prefix .github/semantic_release/ semantic-release {args:}"
-]
-reqs = "pip-compile {args:} --generate-hashes --output-file requirements.txt --all-extras"
-reqs-update = "pip-compile {args:} --upgrade --generate-hashes --output-file requirements.txt --all-extras"
-
-[tool.hatch.envs.lint]
-dependencies = [
-  "mypy>=1.6.1",
-  "ruff~=0.1.4"
-]
-detached = true
-
-[tool.hatch.envs.lint.scripts]
-all = [
-  "style",
-  "typing"
-]
-fmt = [
-  "ruff format {args:.}",
-  "ruff --fix {args:.}",
-  "style"
-]
-precommit = [
-  "pre-commit run --all-files"
-]
-style = [
-  "ruff {args:.}",
-  "ruff format --check --diff {args:.}"
-]
-typing = "mypy --install-types --non-interactive {args:llm_term tests}"
+source_pkgs = ["llm_term"]
 
 [tool.hatch.version]
 path = "llm_term/__about__.py"
 
-[tool.mypy]
-ignore_missing_imports = true
+[tool.pytest.ini_options]
+addopts = "-v --cov"
 
 [tool.ruff]
+line-length = 100
+target-version = "py38"
+
+[tool.ruff.lint]
 ignore = [
   # Allow non-abstract empty methods in abstract base classes
   "B027",
@@ -180,7 +113,6 @@ ignore = [
   "PLR0913",
   "PLR0915"
 ]
-line-length = 100
 select = [
   "A",  # flake8-builtins
   "ARG",  # flake8-unused-arguments
@@ -207,17 +139,16 @@ select = [
   "W",  # pycodestyle (Warning)
   "YTT"  # flake8-2020
 ]
-target-version = "py38"
 
-[tool.ruff.flake8-tidy-imports]
+[tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["llm_term"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 # Tests can use magic values, assertions, and relative imports
 "tests/**/*" = ["PLR2004", "S101", "TID252"]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "numpy"

@@ -2,111 +2,106 @@
 
 ## Environment Setup
 
-!!! tip "pipx"
+This project uses [uv] and [task] to manage this Python packaging
+and running all of its development tasks.
 
-    This documentaion uses [pipx] to
-    install and manage non-project command line tools like `hatch` and
-    `pre-commit`. If you don't already have `pipx` installed, make sure to
-    see their [documentation](https://pypa.github.io/pipx/installation/).
-    If you prefer not to use `pipx`, you can use `pip` instead.
+1. Install [uv](https://github.com/astral-sh/uv)
 
-1.  Install [hatch](https://hatch.pypa.io/latest/)
+    <details open>
+    <summary>Linux / macOS </summary>
 
     ```shell
-    pipx install hatch
+    curl -LsSf https://astral.sh/uv/install.sh | sh
     ```
 
-    !!! note "pre-commit"
+    </details>
 
-        Hatch will attempt to set up pre-commit hooks for you using
-        [pre-commit]. If you don't already,
-        make sure to install pre-commit as well: `pipx install pre-commit`
-
-2.  Build the Virtual Environment
+    <details>
+    <summary>brew</summary>
 
     ```shell
-    hatch env create
+    brew install uv
     ```
 
-3.  If you need to, you can link hatch's virtual environment to your IDE.
-    It's located in the `.venv` directory at the root of the project.
+    </details>
 
-4.  Activate the Virtual Environment
+    <details>
+    <summary>Windows</summary>
 
     ```shell
-    hatch shell
+    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
     ```
 
-## Using Hatch
+    </details>
 
-### Hatch Cheat Sheet
+2. Install [task](https://github.com/go-task/task)
 
-| Command Description            | Command                     | Notes                                                      |
-| ------------------------------ | --------------------------- | ---------------------------------------------------------- |
-| Run Tests                      | `hatch run cov`             | Runs tests with `pytest` and `coverage`                    |
-| Run Formatting                 | `hatch run lint:fmt`        | Runs `ruff` code formatter                                 |
-| Run Linting                    | `hatch run lint:all`        | Runs `ruff` and `mypy` linters / type checkers             |
-| Run Type Checking              | `hatch run lint:typing`     | Runs `mypy` type checker                                   |
-| Update Requirements Lock Files | `hatch run gen:reqs`        | Updating lock file using `pip-compile`                     |
-| Upgrade Dependencies           | `hatch run gen:reqs-update` | Updating lock file using `pip-compile` and `--update` flag |
-| Serve the Documentation        | `hatch run docs:serve`      | Serve the documentation using MkDocs                       |
-| Run the `pre-commit` Hooks     | `hatch run lint:precommit`  | Runs the `pre-commit` hooks on all files                   |
+      <details open>
+      <summary>Linux / macOS </summary>
 
-### Hatch Explanation
+    ```shell
+    sh -c "$(curl -LsSf https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
+    ```
 
-Hatch is a Python package manager. It's most basic use is as a standardized build-system.
-However, hatch also has some extra features which this project takes advantage of.
-These features include virtual environment management and the organization of common
-scripts like linting and testing. All the operations in hatch take place in one
-of its managed virtual environments.
+      </details>
 
-Hatch has a variety of environments, to see them simply ask hatch:
+      <details>
+      <summary>brew</summary>
 
-```bash exec="on" result="markdown" source="tabbed-left" tabs="hatch CLI|Output"
-hatch env show
-```
+    ```shell
+    brew install go-task
+    ```
 
-That above command will tell you that there are four environments that
-you can use:
+      </details>
 
--   `default`
--   `docs`
--   `gen`
--   `lint`
+      <details>
+      <summary>Windows</summary>
 
-Each of these environments has a set of commands that you can run.
-To see the commands for a specific environment, run:
+    You can use `Chocolatey`, `Scoop`, or `Winget`.
+    Read more in the [task installation guide](https://taskfile.dev/installation/).
 
-```bash exec="on" result="markdown" source="tabbed-left" tabs="hatch CLI|Output"
-hatch env show default
-```
+    ```shell
+    choco install go-task
+    scoop install task
+    winget install Task.Task
+    ```
 
-Here we can see that the `default` environment has the following commands:
+      </details>
 
--   `cov`
--   `cov-report`
--   `test`
--   `test-cov`
+3. Build the Virtual Environment
 
-The one that we're interested in is `cov`, which will run the tests
-for the project.
+    ```shell
+    task install
+    ```
 
-```bash
-hatch run cov
-```
+4. Activate the Virtual Environment
 
-Since `cov` is in the default environment, we can run it without
-specifying the environment. However, to run the `serve` command in the
-`docs` environment, we need to specify the environment:
+    ```shell
+    source .venv/bin/activate
+    ```
 
-```bash
-hatch run docs:serve
-```
+## Using Task
 
-You can see what scripts are available using the `env show` command
+### Taskfile Cheat Sheet
 
-```bash exec="on" result="markdown" source="tabbed-left" tabs="hatch CLI|Output"
-hatch env show docs
+| Command Description      | Command           | Notes                                               |
+| ------------------------ | ----------------- | --------------------------------------------------- |
+| Install Project          | `task install`    | Installs the project and development dependencies   |
+| Run Tests                | `task test`       | Runs tests with `pytest` and `coverage`             |
+| Run Formatting           | `task fmt`        | Runs `ruff` and `pre-commit` code formatters        |
+| Run Linting              | `task lint`       | Runs `ruff` code linter                             |
+| Run Type Checking        | `task check`      | Runs `mypy` static type checker                     |
+| Run Code Fixers          | `task fix`        | Runs `ruff` and `pre-commit` to format and fix code |
+| Build the Artifacts      | `task build`      | Build the Python Package and Docker Artifacts       |
+| Build the Docker Image   | `task docker`     | Build the Docker Image with the `docker` CLI        |
+| Serve the Documentation  | `task docs`       | Serves the documentation on `localhost:8000`        |
+| Run a Command            | `task run`        | Run a shell command: `task run -- which python`     |
+| Run the pre-commit Hooks | `task pre-commit` | Runs the `pre-commit` hooks                         |
+
+To see all available commands, simply ask `task`:
+
+```bash exec="on" result="markdown" source="tabbed-left" tabs="task CLI|Output"
+task --list
 ```
 
 ## Committing Code
@@ -187,3 +182,5 @@ branch based releases and other advanced release cases.
 [semantic-release]: https://github.com/semantic-release/semantic-release
 [semantic-versioning]: https://semver.org/
 [semantic-release documentation]: https://semantic-release.gitbook.io/semantic-release/usage/configuration#branches
+[uv]: https://github.com/astral-sh/uv
+[task]: https://github.com/go-task/task
