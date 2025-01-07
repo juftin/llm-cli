@@ -41,6 +41,8 @@ jobs:
               with:
                   version: latest
                   python-version: ${{ matrix.python }}
+            - name: Install Task
+              uses: arduino/setup-task@v2
             - name: Install Python Dependencies
               run: task install
             - name: Test Suite
