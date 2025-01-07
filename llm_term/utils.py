@@ -77,7 +77,11 @@ def get_llm(
 
         chat_model = model or providers[provider]["default_model"]
         provider_name = providers[provider]["name"]
-        return ChatOpenAI(openai_api_key=api_key, model_name=chat_model), chat_model, provider_name
+        return (
+            ChatOpenAI(openai_api_key=api_key, model_name=chat_model),  # type: ignore[call-arg]
+            chat_model,
+            provider_name,
+        )
     elif provider == "anthropic":
         try:
             from langchain_anthropic import ChatAnthropic
@@ -85,7 +89,7 @@ def get_llm(
             chat_model = model or providers[provider]["default_model"]
             provider_name = providers[provider]["name"]
             return (
-                ChatAnthropic(anthropic_api_key=api_key, model_name=chat_model),
+                ChatAnthropic(anthropic_api_key=api_key, model_name=chat_model),  # type: ignore[call-arg]
                 chat_model,
                 provider_name,
             )
@@ -102,7 +106,7 @@ def get_llm(
             chat_model = model or providers[provider]["default_model"]
             provider_name = providers[provider]["name"]
             return (
-                ChatMistralAI(mistral_api_key=api_key, model=chat_model),
+                ChatMistralAI(mistral_api_key=api_key, model=chat_model),  # type: ignore[call-arg]
                 chat_model,
                 provider_name,
             )
@@ -206,11 +210,11 @@ def print_response(
                 text = response.content or ""
             else:
                 text = response or ""
-            console.print(panel_class(Markdown(response.content), title="🤖", title_align="left"))
+            console.print(panel_class(Markdown(response.content), title="🤖", title_align="left"))  # type: ignore[union-attr, arg-type]
         message = AIMessage(content=text)
     else:
-        response = client.stream(input=messages)
-        message = render_streamed_response(response=response, console=console, panel=panel)
+        response = client.stream(input=messages)  # type: ignore[assignment]
+        message = render_streamed_response(response=response, console=console, panel=panel)  # type: ignore[arg-type]
     return message
 
 
@@ -238,7 +242,7 @@ def render_streamed_response(
                 chunk_text = chunk.content or ""
             else:
                 chunk_text = chunk or ""
-            complete_message += chunk_text
+            complete_message += chunk_text  # type: ignore[operator]
             updated_response = Columns(
                 [
                     panel_class(Markdown(complete_message), title="🤖", title_align="left"),
